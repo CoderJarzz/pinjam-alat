@@ -14,6 +14,7 @@ class User extends Authenticatable
 
     public const ROLE_ADMIN = 'admin';
     public const ROLE_MEMBER = 'member';
+    public const ROLE_PETUGAS = 'petugas';
 
     /**
      * The attributes that are mass assignable.
@@ -67,5 +68,10 @@ class User extends Authenticatable
     public function isMember(): bool
     {
         return $this->role === self::ROLE_MEMBER;
+    }
+
+    public function isPetugas(): bool
+    {
+        return $this->role === self::ROLE_PETUGAS;
     }
 }

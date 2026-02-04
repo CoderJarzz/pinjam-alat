@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('barangs', function (Blueprint $table) {
-            $table->unsignedInteger('stok_total')->default(1); // stok total tanpa after()
+             $table->foreignId('category_id')
+          ->constrained()
+          ->cascadeOnDelete();
         });
     }
 
@@ -22,7 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('barangs', function (Blueprint $table) {
-            $table->dropColumn('stok_total');
+            
         });
     }
 };

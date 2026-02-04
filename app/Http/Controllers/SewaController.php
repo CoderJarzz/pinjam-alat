@@ -13,7 +13,7 @@ class SewaController extends Controller
     public function __construct()
     {
         $this->middleware('role:member')->only(['create', 'store']);
-        $this->middleware('role:admin')->only(['approve', 'reject', 'complete']);
+        $this->middleware('role:admin,petugas')->only(['approve', 'reject', 'complete']);
     }
 
     public function index(Request $request)
@@ -22,15 +22,17 @@ class SewaController extends Controller
 
         $sewasQuery = Sewa::with(['barang', 'user'])->latest();
 
-        if ($user && $user->isAdmin()) {
+        if ($user && ($user->isAdmin() || $user->isPetugas())) {
             $sewas = $sewasQuery->get();
+            $isAdmin = true;
         } else {
             $sewas = $sewasQuery->where('user_id', optional($user)->id)->get();
+            $isAdmin = false;
         }
 
         return view('sewa.index', [
             'sewas' => $sewas,
-            'isAdmin' => $user?->isAdmin() ?? false,
+            'isAdmin' => $isAdmin,
         ]);
     }
 
@@ -47,9 +49,8 @@ class SewaController extends Controller
     {
         $request->validate([
             'nama_penyewa' => ['required', 'string', 'max:255'],
-            'alamat' => ['required', 'string', 'max:1000'],
-            'nomor_ktp' => ['required', 'string', 'max:50'],
-            'foto_ktp' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'kelas' => ['required', 'string', 'max:100'],
+            'tanda_nama' => ['nullable', 'string', 'max:255'],
             'tanggal_selesai' => ['required', 'date', 'after:today'],
             'setuju_faq' => ['accepted'],
         ]);
@@ -68,20 +69,14 @@ class SewaController extends Controller
         $durasiHari = max($tanggal_mulai->diffInDays($tanggal_selesai), 1);
         $total_harga = $barang->harga_sewa * $durasiHari;
 
-        $fotoPath = $request->hasFile('foto_ktp')
-            ? $request->file('foto_ktp')->store('ktp', 'public')
-            : null;
-
         Sewa::create([
             'user_id' => Auth::id(),
             'barang_id' => $barang->id,
             'nama_penyewa' => $request->input('nama_penyewa'),
-            'alamat' => $request->input('alamat'),
-            'nomor_ktp' => $request->input('nomor_ktp'),
-            'foto_ktp' => $fotoPath,
+            'kelas' => $request->input('kelas'),
+            'tanda_nama' => $request->input('tanda_nama'),
             'tanggal_mulai' => $tanggal_mulai,
             'tanggal_selesai' => $tanggal_selesai,
-            'total_harga' => $total_harga,
             'status' => Sewa::STATUS_PENDING,
             'faq_disetujui_pada' => now(),
         ]);

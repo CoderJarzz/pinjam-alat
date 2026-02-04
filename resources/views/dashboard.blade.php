@@ -10,7 +10,7 @@
                 <div class="rounded-2xl bg-white/90 dark:bg-gray-900/80 p-5 shadow">
                     <p class="text-xs uppercase tracking-widest text-gray-500">Berjalan</p>
                     <p class="mt-2 text-3xl font-bold text-blue-500">{{ $stats['berjalan'] }}</p>
-                    <span class="text-xs text-gray-400">Sedang disewa</span>
+                    <span class="text-xs text-gray-400">Sedang Dipinjam</span>
                 </div>
                 <div class="rounded-2xl bg-white/90 dark:bg-gray-900/80 p-5 shadow">
                     <p class="text-xs uppercase tracking-widest text-gray-500">Selesai</p>
@@ -91,7 +91,7 @@
                         $aktifSewa = $recentSewa->filter(fn ($sewa) => $sewa->status === 'disetujui');
                     @endphp
                     @if($aktifSewa->isEmpty())
-                        <p class="px-6 py-8 text-sm text-gray-500">Belum ada sewa berjalan.</p>
+                        <p class="px-6 py-8 text-sm text-gray-500">Belum ada Pinjaman berjalan.</p>
                     @else
                         <div class="divide-y divide-gray-100 dark:divide-gray-800">
                             @foreach($aktifSewa as $sewa)
@@ -147,6 +147,57 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        @elseif($user->isPetugas())
+            <div class="grid gap-4 md:grid-cols-3">
+                <div class="rounded-2xl bg-white/90 dark:bg-gray-900/80 p-5 shadow">
+                    <p class="text-xs uppercase tracking-widest text-gray-500">Pending</p>
+                    <p class="mt-2 text-3xl font-bold text-amber-500">{{ $petugasStats['pending'] ?? 0 }}</p>
+                    <span class="text-xs text-gray-400">Menunggu konfirmasi</span>
+                </div>
+                <div class="rounded-2xl bg-white/90 dark:bg-gray-900/80 p-5 shadow">
+                    <p class="text-xs uppercase tracking-widest text-gray-500">Berjalan</p>
+                    <p class="mt-2 text-3xl font-bold text-blue-500">{{ $petugasStats['aktif'] ?? 0 }}</p>
+                    <span class="text-xs text-gray-400">Sedang disewa</span>
+                </div>
+                <div class="rounded-2xl bg-white/90 dark:bg-gray-900/80 p-5 shadow">
+                    <p class="text-xs uppercase tracking-widest text-gray-500">Selesai</p>
+                    <p class="mt-2 text-3xl font-bold text-emerald-500">{{ $petugasStats['selesai'] ?? 0 }}</p>
+                    <span class="text-xs text-gray-400">Riwayat selesai</span>
+                </div>
+            </div>
+
+            <div class="rounded-2xl bg-white/95 dark:bg-gray-900/80 shadow mt-8">
+                <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 px-6 py-4">
+                    <div>
+                        <p class="text-xs uppercase tracking-widest text-gray-500">Riwayat</p>
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Transaksi terbaru</h2>
+                    </div>
+                    <a href="{{ route('sewa.index') }}" class="text-sm text-indigo-500">Lihat semua</a>
+                </div>
+                @if($petugasRecentSewa->isEmpty())
+                    <p class="px-6 py-8 text-sm text-gray-500">Belum ada transaksi peminjaman.</p>
+                @else
+                    <div class="divide-y divide-gray-100 dark:divide-gray-800">
+                        @foreach($petugasRecentSewa as $sewa)
+                            <div class="px-6 py-4 flex items-center justify-between text-sm">
+                                <div>
+                                    <p class="font-semibold text-gray-900 dark:text-gray-100">{{ $sewa->barang->nama ?? '-' }}</p>
+                                    <p class="text-xs text-gray-500">{{ $sewa->tanggal_mulai?->format('d M') }} - {{ $sewa->tanggal_selesai?->format('d M Y') }}</p>
+                                </div>
+                                <span class="rounded-full px-3 py-1 text-xs font-semibold
+                                    @class([
+                                        'bg-amber-100 text-amber-800' => $sewa->status === 'pending',
+                                        'bg-blue-100 text-blue-800' => $sewa->status === 'disetujui',
+                                        'bg-emerald-100 text-emerald-700' => $sewa->status === 'selesai',
+                                        'bg-rose-100 text-rose-700' => $sewa->status === 'gagal',
+                                    ])">
+                                    {{ $sewa->status === 'disetujui' ? 'Berjalan' : ucfirst($sewa->status) }}
+                                </span>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
             </div>
         @else
             <div class="grid gap-4 md:grid-cols-3">

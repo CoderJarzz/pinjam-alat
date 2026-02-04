@@ -41,25 +41,38 @@ class DashboardController extends Controller
                 'recentSewa' => $recentSewa,
                 'stokSummary' => $stokSummary,
             ]);
+        } elseif ($user->isPetugas()) {
+            // Petugas melihat semua peminjaman, bisa konfirmasi
+            $petugasStats = [
+                'pending' => Sewa::where('status', Sewa::STATUS_PENDING)->count(),
+                'aktif' => Sewa::whereIn('status', [Sewa::STATUS_BERHASIL, 'disetujui'])->count(),
+                'selesai' => Sewa::where('status', Sewa::STATUS_SELESAI)->count(),
+            ];
+            $petugasRecentSewa = Sewa::with(['barang', 'user'])->latest()->take(5)->get();
+            return view('dashboard', [
+                'user' => $user,
+                'petugasStats' => $petugasStats,
+                'petugasRecentSewa' => $petugasRecentSewa,
+            ]);
+        } else {
+            $memberStats = [
+                'pending' => Sewa::where('user_id', $user->id)->where('status', Sewa::STATUS_PENDING)->count(),
+                'aktif' => Sewa::where('user_id', $user->id)->whereIn('status', [Sewa::STATUS_BERHASIL, 'disetujui'])->count(),
+                'selesai' => Sewa::where('user_id', $user->id)->where('status', Sewa::STATUS_SELESAI)->count(),
+            ];
+
+            $recentSewa = Sewa::with('barang')
+                ->where('user_id', $user->id)
+                ->latest()
+                ->take(5)
+                ->get();
+
+            return view('dashboard', [
+                'user' => $user,
+                'memberStats' => $memberStats,
+                'recentSewa' => $recentSewa,
+            ]);
         }
-
-        $memberStats = [
-            'pending' => Sewa::where('user_id', $user->id)->where('status', Sewa::STATUS_PENDING)->count(),
-            'aktif' => Sewa::where('user_id', $user->id)->whereIn('status', [Sewa::STATUS_BERHASIL, 'disetujui'])->count(),
-            'selesai' => Sewa::where('user_id', $user->id)->where('status', Sewa::STATUS_SELESAI)->count(),
-        ];
-
-        $recentSewa = Sewa::with('barang')
-            ->where('user_id', $user->id)
-            ->latest()
-            ->take(5)
-            ->get();
-
-        return view('dashboard', [
-            'user' => $user,
-            'memberStats' => $memberStats,
-            'recentSewa' => $recentSewa,
-        ]);
     }
 
     public function export(Request $request)

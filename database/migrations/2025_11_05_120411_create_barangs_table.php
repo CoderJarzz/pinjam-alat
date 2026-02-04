@@ -10,13 +10,19 @@ return new class extends Migration
     {
         Schema::create('barangs', function (Blueprint $table) {
             $table->id();
-            $table->string('nama');
-            $table->string('merk');
-            $table->decimal('harga_sewa', 10, 2);
-            $table->text('deskripsi')->nullable();
-            $table->string('gambar')->nullable();
-            $table->enum('status', ['tersedia', 'disewa'])->default('tersedia');
-            $table->timestamps();
+            
+            $table->string('nama');                  // Nama barang
+            $table->string('merk')->nullable();      // Merk barang
+            $table->string('kategori')->nullable();  // Kategori, misal: alat tulis, elektronik, dll
+            $table->enum('kondisi', ['baru', 'baik', 'rusak ringan', 'rusak berat'])->default('baik'); // Kondisi barang
+            $table->integer('stok')->default(1);    // Jumlah unit tersedia
+            $table->text('deskripsi')->nullable();  // Deskripsi tambahan
+            $table->string('lokasi')->nullable();   // Lokasi penyimpanan
+            $table->string('gambar')->nullable();   // Foto/gambar barang
+            
+            $table->enum('status', ['tersedia', 'disewa'])->default('tersedia'); // Status peminjaman
+            
+            $table->timestamps(); // created_at & updated_at
         });
     }
 

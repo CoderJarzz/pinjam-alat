@@ -13,9 +13,11 @@ class Barang extends Model
     protected $fillable = [
         'nama',
         'merk',
-        'harga_sewa',
+        'category_id', // relasi kategori
+        'kondisi',
         'stok_total',
         'deskripsi',
+        'lokasi',
         'gambar',
         'status',
     ];
@@ -23,6 +25,11 @@ class Barang extends Model
     protected $casts = [
         'stok_total' => 'integer',
     ];
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
 
     public function sewas(): HasMany
     {
